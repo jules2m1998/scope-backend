@@ -1,3 +1,72 @@
-from django.shortcuts import render
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
-# Create your views here.
+from .models import Individual
+from .serializers import IndividualSerializer
+
+
+# API Individual
+@api_view(['GET', ])
+def api_detail_individual(request, id_individual):
+    try:
+        individual = Individual.objects.get(id=id_individual)
+    except Individual.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == "GET":
+        serializer = IndividualSerializer(individual)
+        return Response(serializer.data)
+
+
+# get all individual in databases
+@api_view(['GET', ])
+def api_all_individual(request):
+    individual = Individual.objects.all()
+    if request.method == "GET":
+        serializer = IndividualSerializer(individual, many=True)
+        return Response(serializer.data)
+
+
+# update one individual
+@api_view(['PUT', ])
+def api_update_individual(request, id_individual):
+    try:
+        individual = Individual.objects.get(id=id_individual)
+    except Individual.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == "PUT":
+        serializer = IndividualSerializer(individual, request.data)
+        data = {}
+        if serializer.is_valid():
+            serializer.save()
+            data["success"] = "Update successful !"
+            return Response(data=data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE', ])
+def api_delete_individual(request, id_individual):
+    try:
+        individual = Individual.objects.get(id=id_individual)
+    except Individual.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == "DELETE":
+        operation = individual.delete()
+        data = {}
+        if operation:
+            data["success"] = "Delete successful !"
+        else:
+            data["failure"] = "Delete failed !"
+        return Response(data=data)
+
+
+@api_view(['POST', ])
+def api_create_individual(request):
+    individual = Individual.objects.create()
+    if request.method == "POST":
+        print(request.data)
+        serializer = IndividualSerializer(individual, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
