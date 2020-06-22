@@ -2,6 +2,7 @@ from django.db import models
 from person.models import Person
 from passlib.hash import pbkdf2_sha256
 
+
 # Create your models here.
 
 
@@ -12,3 +13,6 @@ class User(models.Model):
 
     def verifify_password(self, raw_password):
         return pbkdf2_sha256.verify(raw_password, self.password)
+
+    def set_password(self, password):
+        self.password = password

@@ -1,9 +1,11 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from django.conf import settings
 
 from .models import User
 from .serializers import UserSerializer
+import jwt
 
 
 # API User
@@ -74,7 +76,6 @@ def api_create_user(request):
 def api_login(request):
     if request.method == 'POST':
         data = request.data
-        print(data)
         try:
             user = User.objects.get(username=data["username"])
             if user.verifify_password(data["password"]):
@@ -83,3 +84,19 @@ def api_login(request):
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+
+@api_view(['POST', ])
+def api_get_jwt(request):
+    data = {}
+    if request.method == 'POST':
+        try:
+            data = request.data
+            user = User.objects.get(username=data['username'])
+            if user.verifify_password(data['password']):
+                encoded_jwt = jwt.encode(request.data, settings.SECRET_KEY,
+                                         algorithm='HS256')
+                return Response(data={'token': encoded_jwt})
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)

@@ -1,7 +1,5 @@
 from django.db import models
-from datetime import datetime
 from person.models import Person
-# Create your models here.
 
 
 class Individual(models.Model):

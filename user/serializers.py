@@ -14,14 +14,14 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def save(self, **kwargs):
-        user = User(
-            username=self.validated_data['username']
-        )
         password = self.validated_data['password']
         password2 = self.validated_data['password2']
 
         if password2 != password:
             raise serializers.ValidationError({'password': 'Passwords must match'})
-        user.password = pbkdf2_sha256.encrypt(password, rounds=12000, salt_size=32)
+        user = User(
+            username=self.validated_data['username']
+        )
+        user.set_password(pbkdf2_sha256.encrypt(password, rounds=12000, salt_size=32))
         user.save()
         return user
