@@ -87,7 +87,6 @@ def api_login(request):
 
 @api_view(['POST', ])
 def api_get_jwt(request):
-    data = {}
     if request.method == 'POST':
         try:
             data = request.data
