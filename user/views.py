@@ -4,8 +4,6 @@ from rest_framework.decorators import api_view
 
 from .models import User
 from .serializers import UserSerializer
-from django.contrib.auth.hashers import make_password
-from passlib.hash import pbkdf2_sha256
 
 
 # API User
@@ -16,7 +14,7 @@ def api_detail_user(request, id_user):
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == "GET":
-        serializer = UserSerializer(User)
+        serializer = UserSerializer(user)
         return Response(serializer.data)
 
 
@@ -64,11 +62,8 @@ def api_delete_user(request, id_user):
 
 @api_view(['POST', ])
 def api_create_user(request):
-    user = User.objects.create()
     if request.method == "POST":
-        data = request.data
-        data['password'] = pbkdf2_sha256.encrypt(data['password'], rounds=12000, salt_size=32)
-        serializer = UserSerializer(user, data=data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -88,6 +83,3 @@ def api_login(request):
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-def _hash(pwd):
-    return make_password(pwd)
