@@ -18,7 +18,13 @@ class AuthMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         path = request.path_info.lstrip('/')
-        paths = ['user/register/', 'user/jwt/', 'user/login/', 'person/create/', 'person/all/image', 'individual/create/']
+        paths = ['user/register/',
+                 'user/jwt/',
+                 'user/login/',
+                 'person/create/',
+                 'person/all/image',
+                 'individual/create/',
+                 'person/image/find']
         jwt_token = request.headers.get('authorization', None)
         if path in paths:
             return None

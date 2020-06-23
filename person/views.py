@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 
 from .models import Person, Image
 from .serializers import PersonSerializer, ImageSerializer
-import datetime
+import face_recognition
 
 
 # API PERSON
@@ -63,10 +63,9 @@ def api_delete_person(request, id_person):
 
 @api_view(['POST', ])
 def api_create_person(request):
-    person = Person.objects.create(name="", number=1, sex='', birth_day=datetime.datetime.now())
     if request.method == "POST":
         print(request.data)
-        serializer = PersonSerializer(person, data=request.data)
+        serializer = PersonSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -137,16 +136,35 @@ def api_delete_image(request, id_image):
 
 
 @api_view(['POST', ])
-def api_create_image(request, id_person):
+def api_create_image(request):
     try:
-        person = Person.objects.get(id=id_person)
+        person = Person.objects.get(id=request.data['id_person'])
     except Person.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    image = Image.objects.create(id_person=person)
     if request.method == "POST":
-        serializer = ImageSerializer(image, data=request.data)
+        serializer = ImageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST', ])
+def find_person(request):
+    if request.method == "POST":
+        correspondances = []
+        unknown = request.data['img'].file
+        unknown_img = face_recognition.load_image_file(unknown)
+        unknown_encoded = face_recognition.face_encodings(unknown_img)[0]
+
+        known_imgs = Image.objects.all()
+        for known_img in known_imgs:
+            image = face_recognition.load_image_file(known_img.fullPictureLocation)
+            encoded = face_recognition.face_encodings(image)[0]
+            result = face_recognition.compare_faces([encoded], unknown_encoded)
+            if result[0]:
+                correspondances.append(known_img.id_person_id)
+        set_list = set(correspondances)
+        unique = list(set_list)
+        return Response(data={'correspondances': unique}, status=status.HTTP_302_FOUND)

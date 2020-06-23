@@ -4,6 +4,8 @@ from rest_framework.decorators import api_view
 
 from .models import Individual
 from .serializers import IndividualSerializer
+from person.models import Person, Image
+from person.serializers import PersonSerializer, ImageSerializer
 
 
 # API Individual
@@ -15,7 +17,9 @@ def api_detail_individual(request, id_individual):
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == "GET":
         serializer = IndividualSerializer(individual)
-        return Response(serializer.data)
+        indiv = serializer.data
+        indiv['person'] = get_person(individual.person_id_id)
+        return Response(indiv)
 
 
 # get all individual in databases
@@ -24,6 +28,11 @@ def api_all_individual(request):
     individual = Individual.objects.all()
     if request.method == "GET":
         serializer = IndividualSerializer(individual, many=True)
+        print(serializer.data[0]['id'])
+        for indiv in serializer.data:
+            each = indiv['person_id']
+            if each:
+                indiv['person'] = get_person(each)
         return Response(serializer.data)
 
 
@@ -70,3 +79,20 @@ def api_create_individual(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def get_person(id_person):
+    try:
+        person = Person.objects.get(id=id_person)
+    except Person.DoesNotExist:
+        return None
+    personser = PersonSerializer(person)
+    persondata = personser.data
+    try:
+        imgs = Image.objects.filter(id_person=id_person)
+    except Image.DoesNotExist:
+        return persondata
+    imgsser = ImageSerializer(imgs, many=True)
+    persondata['imgs'] = imgsser.data
+    print(persondata)
+    return persondata

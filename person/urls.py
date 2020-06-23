@@ -12,5 +12,6 @@ urlpatterns = [
     path('image/person/<int:id_person>', views.api_all_person_image, name="personImageDetail"),
     path('image/<id_image>/update', views.api_update_image, name="updateImage"),
     path('image/<id_image>/delete', views.api_delete_image, name="deleteImage"),
-    path('image/create/<id_person>', views.api_create_image, name="createImage"),
+    path('image/create/', views.api_create_image, name="createImage"),
+    path('image/find', views.find_person, name="found"),
 ]

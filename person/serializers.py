@@ -1,5 +1,6 @@
 from person.models import Person, Image
 from rest_framework import serializers
+import face_recognition
 
 
 # Classe de sérialisation des personnes pour le model JSON

@@ -3,6 +3,7 @@ from .models import Individual
 
 
 class IndividualSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Individual
         fields = '__all__'

@@ -11,7 +11,5 @@ class Person(models.Model):
 
 class Image(models.Model):
     fullPictureLocation = models.ImageField(upload_to="picture/person", max_length=100, default="")
-    headPictureLocation = models.CharField(max_length=500, default="")
     encode = models.IntegerField(default=0)
-    flag = models.CharField(max_length=50, default=0)
     id_person = models.ForeignKey(Person, on_delete=models.CASCADE)
