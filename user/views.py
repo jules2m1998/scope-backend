@@ -76,10 +76,17 @@ def api_create_user(request):
 def api_login(request):
     if request.method == 'POST':
         data = request.data
+        result = {}
         try:
             user = User.objects.get(username=data["username"])
             if user.verifify_password(data["password"]):
-                return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+                result['username'] = user.username
+                result['id'] = user.id
+
+                encoded_jwt = jwt.encode(request.data, settings.SECRET_KEY,
+                                         algorithm='HS256')
+                result['token'] = encoded_jwt
+                return Response(result, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_404_NOT_FOUND)
