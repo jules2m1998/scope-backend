@@ -5,7 +5,8 @@ from rest_framework.decorators import api_view
 from .models import Person, Image
 from .serializers import PersonSerializer, ImageSerializer
 import face_recognition
-from utils.utils import get_person
+from utils.utils import get_individu_wid_person
+
 
 # API PERSON
 @api_view(['GET', ])
@@ -171,7 +172,7 @@ def find_person(request):
                 break
         if correspondances_id is not None:
             try:
-                match = get_person(correspondances_id)
+                match = get_individu_wid_person(correspondances_id)
                 return Response(data={'correspondances': match}, status=status.HTTP_302_FOUND)
             except Person.DoesNotExist:
                 return Response(status=status.HTTP_404_NOT_FOUND)
