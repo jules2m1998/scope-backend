@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from .models import Person, Image
 from .serializers import PersonSerializer, ImageSerializer
 import face_recognition
-
+from utils.utils import get_person
 
 # API PERSON
 @api_view(['GET', ])
@@ -153,18 +153,27 @@ def api_create_image(request):
 @api_view(['POST', ])
 def find_person(request):
     if request.method == "POST":
-        correspondances = []
+        correspondances_id = None
         unknown = request.data['img'].file
         unknown_img = face_recognition.load_image_file(unknown)
-        unknown_encoded = face_recognition.face_encodings(unknown_img)[0]
+        unknown_encoded_array = face_recognition.face_encodings(unknown_img)
+
+        if len(unknown_encoded_array) == 0:
+            return Response(data={'correspondances': []}, status=status.HTTP_302_FOUND)
 
         known_imgs = Image.objects.all()
         for known_img in known_imgs:
             image = face_recognition.load_image_file(known_img.fullPictureLocation)
             encoded = face_recognition.face_encodings(image)[0]
-            result = face_recognition.compare_faces([encoded], unknown_encoded)
+            result = face_recognition.compare_faces(unknown_encoded_array, encoded)
             if result[0]:
-                correspondances.append(known_img.id_person_id)
-        set_list = set(correspondances)
-        unique = list(set_list)
-        return Response(data={'correspondances': unique}, status=status.HTTP_302_FOUND)
+                correspondances_id = known_img.id_person_id
+                break
+        if correspondances_id is not None:
+            try:
+                match = get_person(correspondances_id)
+                return Response(data={'correspondances': match}, status=status.HTTP_302_FOUND)
+            except Person.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
